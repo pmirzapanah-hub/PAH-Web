@@ -1,18 +1,12 @@
 {
-  "name": "pah-web-server",
+  "name": "pah-web",
   "version": "1.0.0",
+  "type": "module",
   "main": "index.js",
-  "type": "commonjs",
   "scripts": {
-    "start": "node index.js",
-    "dev": "node index.js"
+    "start": "node index.js"
   },
   "dependencies": {
-    "@azure/msal-node": "^2.16.0",
-    "@microsoft/microsoft-graph-client": "^3.0.7",
-    "dotenv": "^16.4.5",
-    "express": "^4.19.2",
-    "express-session": "^1.17.3",
-    "papaparse": "^5.4.1"
+    "express": "^4.18.2"
   }
 }
