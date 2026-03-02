@@ -1,12 +1,12 @@
 {
   "name": "pah-web-server",
   "version": "1.0.0",
-  "type": "commonjs",
   "main": "index.js",
-"scripts": {
-  "start": "node index.js",
-  "dev": "node index.js"
-}
+  "type": "commonjs",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node index.js"
+  },
   "dependencies": {
     "@azure/msal-node": "^2.16.0",
     "@microsoft/microsoft-graph-client": "^3.0.7",
