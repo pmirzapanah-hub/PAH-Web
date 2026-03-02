@@ -1,0 +1,49 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>PAH Web</title>
+  <link rel="stylesheet" href="/style.css"/>
+</head>
+<body>
+<header>
+  <div><strong>PAH Web</strong> <span class="small">Projects + CRM</span></div>
+  <div class="row" style="gap:8px;">
+    <button id="btnConnect">Connect OneDrive</button>
+    <a href="/settings.html">Settings</a>
+    <a href="/auth/logout">Logout</a>
+  </div>
+</header>
+
+<div class="container">
+  <div class="card">
+    <div class="small" id="loginState">Checking login…</div>
+  </div>
+
+  <div class="row">
+    <div class="card">
+      <h3>Project Search</h3>
+      <label>Search projects (folder name)</label>
+      <input id="qProjects" placeholder="Type project name / keyword"/>
+      <div style="margin-top:10px;">
+        <button id="btnProjectSearch">Search Projects</button>
+      </div>
+      <div class="list" id="projectResults" style="margin-top:10px;"></div>
+    </div>
+
+    <div class="card">
+      <h3>CRM Search</h3>
+      <label>Search CRM rows</label>
+      <input id="qCrm" placeholder="Client / address / email / any field"/>
+      <div style="margin-top:10px;">
+        <button id="btnCrmSearch">Search CRM</button>
+      </div>
+      <div id="crmResults" style="margin-top:10px;"></div>
+    </div>
+  </div>
+</div>
+
+<script src="/app.js"></script>
+</body>
+</html>
