@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PAH Web – Projects + CRM</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<script src="https://alcdn.msauth.net/browser/2.32.2/js/msal-browser.min.js" onerror="msalLoadFailed()"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg:#0a0a0a; --surface:#161616; --card:#1e1e1e;
+    --border:#2a2a2a; --border-hi:#3a3a3a;
+    --text:#e8e8e8; --muted:#666; --accent:#4da3ff;
+    --accent-dim:#1a3a5c; --btn-bg:#252525; --btn-hover:#303030; --input-bg:#111;
+  }
+  html,body{height:100%;background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:14px;}
+  nav{display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:44px;background:#0f0f0f;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;}
+  .nav-brand{display:flex;align-items:baseline;gap:6px;}
+  .nav-brand .bold{font-weight:600;font-size:14px;}
+  .nav-brand .light{font-weight:300;color:var(--muted);font-size:13px;}
+  .nav-right{display:flex;align-items:center;gap:16px;}
+  .nav-user{font-size:11px;color:var(--muted);font-family:'IBM Plex Mono',monospace;}
+  .nav-link{color:var(--accent);font-size:13px;cursor:pointer;transition:opacity .15s;}
+  .nav-link:hover{opacity:.7;}
+  .page{display:none;min-height:calc(100vh - 44px);padding:28px 20px;}
+  .page.active{display:block;}
+
+  .main-wrap{max-width:1060px;margin:0 auto;display:flex;flex-direction:column;gap:12px;}
+  .top-bar{display:grid;grid-template-columns:260px 1fr;gap:12px;}
+  .panel-logo{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 20px;display:flex;flex-direction:column;justify-content:center;gap:4px;}
+  .panel-logo h1{font-size:19px;font-weight:600;letter-spacing:-.3px;}
+  .panel-logo p{color:var(--muted);font-size:11px;font-family:'IBM Plex Mono',monospace;}
+  .panel-status{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 20px;display:flex;align-items:center;gap:12px;}
+  .status-dot{width:8px;height:8px;border-radius:50%;background:#3d3d3d;flex-shrink:0;transition:background .3s,box-shadow .3s;}
+  .status-dot.ok{background:#3ecf8e;box-shadow:0 0 8px #3ecf8e55;}
+  .status-dot.warn{background:#f0a500;box-shadow:0 0 8px #f0a50055;}
+  .status-info{display:flex;flex-direction:column;gap:2px;}
+  .status-text{color:var(--muted);font-size:12px;font-family:'IBM Plex Mono',monospace;}
+  .status-count{color:var(--accent);font-size:11px;font-family:'IBM Plex Mono',monospace;}
+  .body-row{display:grid;grid-template-columns:260px 1fr;gap:12px;align-items:start;}
+  .panel-search{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px;display:flex;flex-direction:column;gap:12px;position:sticky;top:56px;}
+  .panel-search h2{font-size:14px;font-weight:600;}
+  .search-wrap{position:relative;}
+  .search-wrap .ico{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:12px;pointer-events:none;}
+  .search-main{width:100%;background:var(--input-bg);border:1px solid var(--border-hi);border-radius:6px;padding:9px 10px 9px 30px;color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:13px;outline:none;transition:border-color .2s;}
+  .search-main::placeholder{color:var(--muted);}
+  .search-main:focus{border-color:#2a5a8a;}
+  .search-hint{color:var(--muted);font-size:11px;font-family:'IBM Plex Mono',monospace;line-height:1.7;}
+  .btn{display:inline-flex;align-items:center;gap:6px;justify-content:center;background:var(--btn-bg);border:1px solid var(--border-hi);border-radius:6px;color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:13px;padding:8px 14px;cursor:pointer;transition:background .15s,border-color .15s;white-space:nowrap;}
+  .btn:hover{background:var(--btn-hover);border-color:#444;}
+  .btn:disabled{opacity:.4;cursor:not-allowed;}
+  .btn-primary{background:var(--accent-dim);border-color:#1f5080;color:#9ecfff;}
+  .btn-primary:hover{background:#1f4f7a;border-color:#2a6aaa;}
+  .btn-full{width:100%;}
+  .btn-ms{background:#1a3a6a;border-color:#2a5a9a;color:#9ecfff;font-weight:500;}
+  .btn-ms:hover{background:#1f4a7a;}
+  .btn-danger{background:#2a1010;border-color:#4a2020;color:#cf6f6f;}
+  .btn-danger:hover{background:#3a1515;}
+  .panel-results{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 18px;min-height:260px;display:flex;flex-direction:column;gap:6px;}
+  .results-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
+  .results-label{font-size:11px;color:var(--muted);font-family:'IBM Plex Mono',monospace;letter-spacing:.5px;}
+  .results-badge{background:var(--accent-dim);color:#9ecfff;font-size:10px;font-family:'IBM Plex Mono',monospace;padding:2px 9px;border-radius:10px;}
+  .result-item{background:var(--card);border:1px solid var(--border);border-radius:7px;padding:10px 13px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:border-color .15s,background .15s;gap:8px;}
+  .result-item:hover{border-color:#2a5a9a;background:#151e2d;}
+  .ri-left{display:flex;flex-direction:column;gap:2px;min-width:0;}
+  .ri-num{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--accent);}
+  .ri-client{font-weight:500;font-size:13px;}
+  .ri-full{color:var(--muted);font-size:10px;font-family:'IBM Plex Mono',monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .ri-arrow{color:var(--muted);font-size:11px;flex-shrink:0;}
+  mark{background:#1e3d10;color:#8ecf55;border-radius:2px;padding:0 1px;}
+  .empty-state{color:var(--muted);font-size:12px;font-family:'IBM Plex Mono',monospace;text-align:center;padding:30px 10px;line-height:2;}
+  .empty-icon{font-size:28px;display:block;margin-bottom:8px;}
+  .spinner{display:inline-block;width:14px;height:14px;border:2px solid #333;border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .loading-row{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12px;font-family:'IBM Plex Mono',monospace;padding:20px 0;}
+
+  .settings-wrap{max-width:660px;margin:0 auto;display:flex;flex-direction:column;gap:14px;}
+  .settings-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:24px;display:flex;flex-direction:column;gap:16px;}
+  .s-title{font-size:14px;font-weight:600;}
+  .s-desc{color:var(--muted);font-size:12px;font-family:'IBM Plex Mono',monospace;line-height:1.7;}
+  .s-desc strong{color:#aaa;}
+  .field-group{display:flex;flex-direction:column;gap:5px;}
+  .field-group label{font-size:13px;font-weight:500;}
+  .field-hint{color:var(--muted);font-size:11px;font-family:'IBM Plex Mono',monospace;}
+  .s-input{width:100%;background:var(--input-bg);border:1px solid var(--border-hi);border-radius:6px;padding:9px 11px;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:12px;outline:none;transition:border-color .2s;}
+  .s-input:focus{border-color:#2a5a8a;}
+  .btn-row{display:flex;gap:9px;flex-wrap:wrap;}
+  .info-box{background:#0d1520;border:1px solid #1a3050;border-radius:7px;padding:13px 15px;font-size:11px;color:#5a8aaa;font-family:'IBM Plex Mono',monospace;line-height:1.9;}
+  .info-box strong{color:#7ab0d4;}
+  .warn-box{background:#1a1200;border:1px solid #3a2a00;border-radius:7px;padding:13px 15px;font-size:11px;color:#c8a040;font-family:'IBM Plex Mono',monospace;line-height:1.9;}
+  .warn-box strong{color:#f0c060;}
+
+  #toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(14px);background:#162016;border:1px solid #254025;color:#6fcf97;padding:8px 18px;border-radius:6px;font-size:12px;font-family:'IBM Plex Mono',monospace;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;z-index:999;}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  #toast.err{background:#201616;border-color:#402525;color:#cf8080;}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <span class="bold">PAH Web</span>
+    <span class="light">Projects + CRM</span>
+  </div>
+  <div class="nav-right">
+    <span class="nav-user" id="nav-user"></span>
+    <span class="nav-link" id="nav-btn" onclick="showPage('settings')">Settings</span>
+  </div>
+</nav>
+
+<!-- PAGE: MAIN -->
+<div class="page active" id="page-main">
+  <div class="main-wrap">
+    <div class="top-bar">
+      <div class="panel-logo">
+        <h1>PAH Web</h1>
+        <p>// projects + crm dashboard</p>
+      </div>
+      <div class="panel-status">
+        <div class="status-dot" id="status-dot"></div>
+        <div class="status-info">
+          <span class="status-text" id="status-text">Not signed in — go to Settings</span>
+          <span class="status-count" id="status-count"></span>
+        </div>
+      </div>
+    </div>
+    <div class="body-row">
+      <div class="panel-search">
+        <h2>Job Search</h2>
+        <div class="search-wrap">
+          <span class="ico">🔍</span>
+          <input class="search-main" id="search-input" type="text"
+            placeholder="Name, job #, keyword…" oninput="doSearch()" />
+        </div>
+        <div class="search-hint">
+          Search by:<br>
+          · client name &nbsp;→ "sunny"<br>
+          · job number &nbsp;→ "38231125"<br>
+          · any keyword &nbsp;→ "shop"
+        </div>
+        <button class="btn btn-primary btn-full" onclick="doSearch()">Search Jobs</button>
+        <button class="btn btn-full" id="refresh-btn" onclick="loadFolders()" style="display:none">↻ Refresh from OneDrive</button>
+      </div>
+      <div class="panel-results">
+        <div class="results-hdr">
+          <span class="results-label">RESULTS</span>
+          <span class="results-badge" id="results-badge" style="display:none"></span>
+        </div>
+        <div id="results-area">
+          <div class="empty-state">
+            <span class="empty-icon">📁</span>
+            Sign in to OneDrive in Settings<br>then search your Jobs folders
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE: SETTINGS -->
+<div class="page" id="page-settings">
+  <div class="settings-wrap">
+
+    <div class="settings-card" id="msal-error-card" style="display:none">
+      <div class="s-title">⚠️ Sign-in Library Failed to Load</div>
+      <div class="warn-box">
+        The Microsoft sign-in library could not be reached.<br><br>
+        <strong>Check:</strong> Are you connected to the internet?<br>
+        Try refreshing the page. If the problem persists,<br>
+        contact support.
+      </div>
+    </div>
+
+    <div class="settings-card">
+      <div class="s-title">Microsoft / OneDrive Sign In</div>
+      <div class="s-desc">
+        Sign in with the Microsoft account that owns your OneDrive.<br>
+        The app reads your <strong>Jobs</strong> folder live — no copy/paste needed.
+      </div>
+      <div class="info-box">
+        <strong>App URL:</strong> https://pmirzapanah-hub.github.io/PAH-Web/<br>
+        <strong>Reads from:</strong> OneDrive → Jobs<br>
+        <strong>Permission:</strong> Files.Read only
+      </div>
+      <button class="btn btn-ms btn-full" id="signin-btn" onclick="signIn()">
+        Sign in with Microsoft
+      </button>
+      <div id="auth-status" style="font-size:11px;color:var(--muted);font-family:'IBM Plex Mono',monospace;min-height:16px;"></div>
+    </div>
+
+    <div class="settings-card">
+      <div class="s-title">Jobs Folder Path</div>
+      <div class="s-desc">Only change this if your OneDrive Jobs folder has a different name.</div>
+      <div class="field-group">
+        <label>Folder name on OneDrive</label>
+        <div class="field-hint">Case-sensitive · current: OneDrive / Jobs</div>
+        <input class="s-input" id="jobs-path" type="text" value="Jobs" />
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="savePath()">Save</button>
+        <button class="btn" onclick="loadFolders()">↻ Reload Folders</button>
+        <button class="btn btn-danger" onclick="signOut()">Sign Out</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const CLIENT_ID   = '43d64d22-9fcc-42a0-b7a4-719c2ca8c11d';
+const REDIRECT_URI = 'https://pmirzapanah-hub.github.io/PAH-Web/';
+const SCOPES      = ['Files.Read', 'User.Read'];
+const GRAPH       = 'https://graph.microsoft.com/v1.0';
+
+const state = { folders: [], folderUrls: {}, jobsPath: 'Jobs', account: null, token: null };
+let msalApp = null;
+
+function msalLoadFailed() {
+  document.getElementById('msal-error-card').style.display = 'flex';
+  const btn = document.getElementById('signin-btn');
+  btn.disabled = true;
+  btn.textContent = '⚠️ Could not load sign-in library';
+}
+
+window.addEventListener('load', () => {
+  if (typeof msal === 'undefined') { msalLoadFailed(); return; }
+  initMsal();
+});
+
+function initMsal() {
+  msalApp = new msal.PublicClientApplication({
+    auth: {
+      clientId: CLIENT_ID,
+      authority: 'https://login.microsoftonline.com/common',
+      redirectUri: REDIRECT_URI,
+    },
+    cache: { cacheLocation: 'sessionStorage', storeAuthStateInCookie: false }
+  });
+
+  msalApp.handleRedirectPromise().then(resp => {
+    if (resp?.account) {
+      state.account = resp.account;
+      state.token   = resp.accessToken;
+      onSignedIn();
+    } else {
+      const accounts = msalApp.getAllAccounts();
+      if (accounts.length > 0) {
+        state.account = accounts[0];
+        silentToken().then(tok => { if (tok) { state.token = tok; onSignedIn(); } });
+      }
+    }
+  }).catch(err => {
+    setAuthStatus('Sign-in error: ' + err.message, true);
+    console.error(err);
+  });
+}
+
+async function silentToken() {
+  try {
+    const r = await msalApp.acquireTokenSilent({ scopes: SCOPES, account: state.account });
+    return r.accessToken;
+  } catch { return null; }
+}
+
+async function signIn() {
+  if (!msalApp) { toast('Sign-in library not loaded', true); return; }
+  try {
+    setAuthStatus('Opening Microsoft sign-in…');
+    await msalApp.loginRedirect({ scopes: SCOPES, redirectUri: REDIRECT_URI });
+  } catch (e) {
+    setAuthStatus('Error: ' + e.message, true);
+  }
+}
+
+function signOut() {
+  state.account = null; state.token = null; state.folders = [];
+  updateStatus();
+  if (msalApp) msalApp.logoutRedirect({ postLogoutRedirectUri: REDIRECT_URI });
+}
+
+function onSignedIn() {
+  const name = state.account.name || state.account.username;
+  document.getElementById('nav-user').textContent = name;
+  document.getElementById('signin-btn').textContent = '✓ Signed in as ' + name;
+  document.getElementById('signin-btn').disabled = true;
+  setAuthStatus('✓ Signed in · loading folders…');
+  updateStatus();
+  loadFolders();
+}
+
+async function fetchChildren(tok, url) {
+  let all = [];
+  while (url) {
+    const res = await fetch(url, { headers: { Authorization: 'Bearer ' + tok } });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.error?.message || 'HTTP ' + res.status); }
+    const data = await res.json();
+    // store both name and webUrl so clicking needs no async call
+    data.value.filter(i => i.folder).forEach(i => {
+      all.push(i.name);
+      if (i.webUrl) state.folderUrls[i.name] = i.webUrl;
+    });
+    url = data['@odata.nextLink'] || null;
+  }
+  return all;
+}
+
+async function loadFolders() {
+  if (!state.account) { toast('Sign in first via Settings', true); return; }
+  const tok = await silentToken();
+  if (!tok) { toast('Session expired — please sign in again', true); return; }
+  state.token = tok;
+
+  state.folderUrls = {};
+  const manualPath = (document.getElementById('jobs-path')?.value || state.jobsPath).trim();
+  const variants = [...new Set([manualPath, manualPath.toLowerCase(),
+    manualPath.charAt(0).toUpperCase() + manualPath.slice(1)])];
+
+  document.getElementById('results-area').innerHTML =
+    `<div class="loading-row"><span class="spinner"></span>Searching OneDrive for "${manualPath}"…</div>`;
+  document.getElementById('results-badge').style.display = 'none';
+
+  let lastError = '';
+  for (const path of variants) {
+    try {
+      const url = `${GRAPH}/me/drive/root:/${encodeURIComponent(path)}:/children?$select=name,folder,webUrl&$top=999`;
+      const all = await fetchChildren(tok, url);
+      state.folders = all.sort();
+      state.jobsPath = path;
+      const inp = document.getElementById('jobs-path');
+      if (inp) inp.value = path;
+      updateStatus();
+      setAuthStatus('✓ ' + state.folders.length + ' folders loaded from OneDrive/' + path);
+      document.getElementById('refresh-btn').style.display = 'block';
+      toast('✓ ' + state.folders.length + ' folders loaded');
+      document.getElementById('results-area').innerHTML =
+        `<div class="empty-state"><span class="empty-icon">✅</span>${state.folders.length} folders ready.<br>Start typing to search.</div>`;
+      return;
+    } catch (err) { lastError = err.message; }
+  }
+
+  // All failed — show what folders actually exist at root so user can pick correct name
+  let rootInfo = '';
+  try {
+    const r = await fetch(`${GRAPH}/me/drive/root/children?$select=name,folder&$top=30`,
+      { headers: { Authorization: 'Bearer ' + tok } });
+    const d = await r.json();
+    const names = d.value?.filter(i => i.folder).map(i => `"${i.name}"`).join(', ');
+    if (names) rootInfo = `<br><br>Folders found in your OneDrive root:<br><strong style="color:#9ecfff">${names}</strong><br><br>Copy the correct name into<br>Settings → Jobs Folder Path → Save → Reload.`;
+  } catch(e) {}
+
+  document.getElementById('results-area').innerHTML =
+    `<div class="empty-state"><span class="empty-icon">⚠️</span>
+    Folder <strong style="color:#cf8080">"${manualPath}"</strong> not found.<br>
+    <span style="font-size:10px">${lastError}</span>${rootInfo}</div>`;
+  toast('Folder not found — check results panel', true);
+}
+
+function savePath() {
+  state.jobsPath = document.getElementById('jobs-path').value.trim();
+  toast('✓ Path saved');
+}
+
+function updateStatus() {
+  const dot = document.getElementById('status-dot');
+  const txt = document.getElementById('status-text');
+  const cnt = document.getElementById('status-count');
+  const ok  = state.folders.length > 0;
+  dot.classList.toggle('ok',   ok);
+  dot.classList.toggle('warn', !!state.account && !ok);
+  txt.textContent = !state.account
+    ? 'Not signed in — go to Settings'
+    : ok ? 'OneDrive connected · Jobs loaded' : 'Signed in · loading…';
+  cnt.textContent = ok ? '// ' + state.folders.length + ' folders indexed' : '';
+}
+
+function parse(raw) {
+  const m = raw.match(/^([\d][\w]*)\s*[-–]\s*(.+)$/);
+  return m ? { num: m[1].trim(), client: m[2].trim(), raw }
+           : { num: '', client: raw, raw };
+}
+function hl(text, q) {
+  if (!q) return text;
+  const i = text.toLowerCase().indexOf(q.toLowerCase());
+  if (i === -1) return text;
+  return text.slice(0, i) + '<mark>' + text.slice(i, i + q.length) + '</mark>' + text.slice(i + q.length);
+}
+
+function doSearch() {
+  const q     = document.getElementById('search-input').value.trim();
+  const area  = document.getElementById('results-area');
+  const badge = document.getElementById('results-badge');
+  const ql    = q.toLowerCase();
+
+  if (!q) {
+    badge.style.display = 'none';
+    area.innerHTML = state.folders.length
+      ? `<div class="empty-state"><span class="empty-icon">🔍</span>Type to search ${state.folders.length} folders</div>`
+      : `<div class="empty-state"><span class="empty-icon">📁</span>Sign in to OneDrive in Settings<br>then search your Jobs folders</div>`;
+    return;
+  }
+  if (!state.folders.length) {
+    badge.style.display = 'none';
+    area.innerHTML = `<div class="empty-state"><span class="empty-icon">⚙️</span>No folders loaded.<br>Go to <strong>Settings</strong> and sign in.</div>`;
+    return;
+  }
+
+  const matches = state.folders.map(parse).filter(f => f.raw.toLowerCase().includes(ql));
+  badge.style.display = matches.length ? 'inline' : 'none';
+  badge.textContent   = matches.length + ' match' + (matches.length !== 1 ? 'es' : '');
+
+  if (!matches.length) {
+    area.innerHTML = `<div class="empty-state"><span class="empty-icon">🔍</span>No folders matched<br><strong style="color:#888">"${q}"</strong></div>`;
+    return;
+  }
+
+  area.innerHTML = matches.map(f => `
+    <div class="result-item" onclick="openFolder(${JSON.stringify(f.raw)})">
+      <div class="ri-left">
+        ${f.num ? `<span class="ri-num"># ${hl(f.num, ql)}</span>` : ''}
+        <span class="ri-client">${hl(f.client, ql)}</span>
+        ${f.num ? `<span class="ri-full">${hl(f.raw, ql)}</span>` : ''}
+      </div>
+      <span class="ri-arrow">▶</span>
+    </div>
+  `).join('');
+}
+
+function openFolder(name) {
+  const url = state.folderUrls[name];
+  if (url) {
+    window.open(url, '_blank');
+  } else {
+    toast('No URL for this folder — try refreshing', true);
+  }
+}
+
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  const btn = document.getElementById('nav-btn');
+  btn.textContent = name === 'settings' ? '← Back' : 'Settings';
+  btn.onclick = name === 'settings' ? () => showPage('main') : () => showPage('settings');
+}
+
+document.getElementById('search-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doSearch();
+});
+
+function setAuthStatus(msg, err) {
+  const el = document.getElementById('auth-status');
+  if (el) { el.textContent = msg; el.style.color = err ? '#cf8080' : 'var(--muted)'; }
+}
+function toast(msg, err) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.className = err ? 'err' : '';
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+updateStatus();
+</script>
+</body>
+</html>
